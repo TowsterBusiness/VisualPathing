@@ -1,0 +1,50 @@
+.node-editor-container {
+  flex: 1;
+  min-height: 0;
+  background: #181825;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.node-editor-flow {
+  width: 100%;
+  height: 100%;
+}
+
+/* React Flow overrides */
+.react-flow__edge-path {
+  stroke: #585b70 !important;
+}
+
+.react-flow__edge.selected .react-flow__edge-path {
+  stroke: #89b4fa !important;
+}
+
+.flow-controls {
+  background: #1e1e2e !important;
+  border: 1px solid #313244 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+.flow-controls button {
+  background: #1e1e2e !important;
+  border-color: #313244 !important;
+  color: #cdd6f4 !important;
+  width: 28px !important;
+  height: 28px !important;
+}
+
+.flow-controls button:hover {
+  background: #313244 !important;
+}
+
+.flow-controls button svg {
+  fill: #cdd6f4 !important;
+}
+
+.flow-minimap {
+  background: #11111b !important;
+  border: 1px solid #313244 !important;
+  border-radius: 8px !important;
+}

@@ -1,0 +1,285 @@
+.simulation-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  background: #181825;
+  border-top: 1px solid #313244;
+  border-radius: 0 0 12px 12px;
+}
+
+/* ===== Transport Controls ===== */
+
+.sim-transport {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sim-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid #313244;
+  border-radius: 8px;
+  background: #1e1e2e;
+  color: #cdd6f4;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.sim-btn:hover {
+  background: #313244;
+  border-color: #585b70;
+}
+
+.sim-btn.playing {
+  background: #89b4fa22;
+  border-color: #89b4fa;
+  color: #89b4fa;
+}
+
+.sim-btn:active {
+  transform: scale(0.95);
+}
+
+/* ===== Timeline Scrubber ===== */
+
+.sim-scrubber {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.sim-time {
+  font-size: 12px;
+  font-weight: 600;
+  color: #89b4fa;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  min-width: 42px;
+  text-align: center;
+}
+
+.sim-time.total {
+  color: #6c7086;
+}
+
+.sim-slider {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 3px;
+  background: #313244;
+  outline: none;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.sim-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #89b4fa;
+  cursor: grab;
+  border: 2px solid #1e1e2e;
+  box-shadow: 0 0 4px rgba(137, 180, 250, 0.3);
+  transition: transform 0.1s;
+}
+
+.sim-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.sim-slider::-webkit-slider-thumb:active {
+  cursor: grabbing;
+  transform: scale(1.15);
+}
+
+.sim-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #89b4fa;
+  cursor: grab;
+  border: 2px solid #1e1e2e;
+}
+
+/* ===== Info Row ===== */
+
+.sim-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.sim-stat {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #a6adc8;
+}
+
+.sim-stat-value {
+  color: #cdd6f4;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.sim-stat-label {
+  color: #6c7086;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 10px;
+}
+
+/* ===== Speed Selector ===== */
+
+.sim-speed {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.speed-btn {
+  padding: 2px 8px;
+  border: 1px solid #313244;
+  border-radius: 4px;
+  background: transparent;
+  color: #6c7086;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.speed-btn:hover {
+  background: #313244;
+  color: #cdd6f4;
+}
+
+.speed-btn.active {
+  background: #89b4fa22;
+  border-color: #89b4fa;
+  color: #89b4fa;
+}
+
+/* ===== Settings Row ===== */
+
+.sim-settings {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.sim-setting-field {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sim-setting-label {
+  font-size: 10px;
+  color: #6c7086;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.sim-setting-input {
+  width: 60px;
+  padding: 3px 6px;
+  background: #11111b;
+  border: 1px solid #313244;
+  border-radius: 4px;
+  color: #cdd6f4;
+  font-size: 11px;
+  font-family: inherit;
+  outline: none;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.sim-setting-input:focus {
+  border-color: #89b4fa;
+}
+
+.sim-setting-unit {
+  font-size: 10px;
+  color: #585b70;
+}
+
+.sim-settings-toggle {
+  font-size: 10px;
+  color: #6c7086;
+  background: none;
+  border: 1px solid #313244;
+  border-radius: 4px;
+  padding: 2px 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.sim-settings-toggle:hover {
+  color: #cdd6f4;
+  border-color: #585b70;
+}
+
+/* ===== Segment Indicator ===== */
+
+.sim-segment {
+  font-size: 11px;
+  color: #a6adc8;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sim-segment-kind {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.sim-segment-kind.travel { background: #89b4fa33; color: #89b4fa; }
+.sim-segment-kind.rotate { background: #cba6f733; color: #cba6f7; }
+.sim-segment-kind.wait   { background: #fab38733; color: #fab387; }
+.sim-segment-kind.action { background: #74c7ec33; color: #74c7ec; }
+
+/* ===== Active Node Highlight ===== */
+
+.sim-active-node {
+  font-size: 11px;
+  color: #a6e3a1;
+  font-weight: 500;
+}
+
+/* ===== Responsive ===== */
+
+@media (max-width: 900px) {
+  .simulation-panel {
+    padding: 6px 8px;
+    gap: 4px;
+  }
+
+  .sim-settings {
+    display: none;
+  }
+}

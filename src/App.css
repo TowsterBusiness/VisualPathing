@@ -1,0 +1,89 @@
+/* ===== App Layout ===== */
+
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background: #11111b;
+  color: #cdd6f4;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+.app-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.main-area {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  gap: 0;
+}
+
+.field-panel {
+  width: 40%;
+  min-width: 280px;
+  max-width: 600px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #313244;
+  flex-shrink: 0;
+}
+
+.editor-panel {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===== Responsive: stacked layout on narrow screens ===== */
+
+@media (max-width: 900px) {
+  .app-body {
+    flex-direction: column;
+  }
+
+  .main-area {
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .field-panel {
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    height: 45%;
+    min-height: 200px;
+    border-right: none;
+    border-bottom: 1px solid #313244;
+    padding: 4px;
+  }
+
+  .editor-panel {
+    flex: 1;
+    min-height: 200px;
+  }
+
+  .properties-panel {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-height: 200px;
+    border-left: none !important;
+    border-top: 1px solid #313244;
+  }
+}
+
+@media (max-width: 600px) {
+  .field-panel {
+    height: 35%;
+    min-height: 160px;
+  }
+}

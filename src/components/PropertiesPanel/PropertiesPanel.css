@@ -1,0 +1,219 @@
+.properties-panel {
+  width: 300px;
+  min-width: 300px;
+  background: #1e1e2e;
+  border-left: 1px solid #313244;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  position: relative;
+  z-index: 5;
+  pointer-events: auto;
+  user-select: text;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #cdd6f4;
+  border-bottom: 1px solid #313244;
+  background: #181825;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.delete-btn {
+  background: none;
+  border: 1px solid #45475a;
+  border-radius: 6px;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.15s;
+}
+
+.delete-btn:hover {
+  background: #f38ba822;
+  border-color: #f38ba8;
+}
+
+.panel-empty {
+  padding: 32px 16px;
+  text-align: center;
+  color: #6c7086;
+  font-size: 13px;
+}
+
+.panel-section {
+  padding: 12px 16px;
+  border-bottom: 1px solid #313244;
+}
+
+.node-type-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #1e1e2e;
+}
+
+.node-type-badge[data-type="start"]    { background: #a6e3a1; }
+.node-type-badge[data-type="move"]     { background: #89b4fa; }
+.node-type-badge[data-type="parallel"] { background: #f9e2af; }
+.node-type-badge[data-type="while"]    { background: #cba6f7; }
+.node-type-badge[data-type="wait"]     { background: #fab387; }
+.node-type-badge[data-type="action"]   { background: #74c7ec; }
+.node-type-badge[data-type="split"]    { background: #f38ba8; }
+.node-type-badge[data-type="merge"]    { background: #94e2d5; }
+
+.prop-label {
+  display: block;
+  font-size: 11px;
+  color: #a6adc8;
+  margin-bottom: 6px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.prop-input {
+  width: 100%;
+  padding: 8px 10px;
+  background: #11111b;
+  border: 1px solid #313244;
+  border-radius: 6px;
+  color: #cdd6f4;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s;
+  box-sizing: border-box;
+  pointer-events: auto;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.prop-input:focus {
+  border-color: #89b4fa;
+}
+
+.prop-input.prop-number {
+  width: 100%;
+}
+
+.prop-row {
+  display: flex;
+  gap: 8px;
+}
+
+.prop-field {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.prop-prefix {
+  color: #6c7086;
+  font-size: 11px;
+  font-weight: 600;
+  min-width: 14px;
+}
+
+.prop-select {
+  width: 100%;
+  padding: 8px 10px;
+  background: #11111b;
+  border: 1px solid #313244;
+  border-radius: 6px;
+  color: #cdd6f4;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.prop-select:focus {
+  border-color: #89b4fa;
+}
+
+.prop-checkbox-label {
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  font-size: 13px !important;
+  color: #cdd6f4 !important;
+}
+
+.prop-checkbox-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #89b4fa;
+  cursor: pointer;
+}
+
+/* ===== Function prompt styling ===== */
+
+.fn-prompt {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #11111b;
+  border: 1px solid #313244;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-family: 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 13px;
+}
+
+.fn-keyword {
+  color: #cba6f7;
+  font-size: 12px;
+}
+
+.fn-input {
+  border: none !important;
+  background: transparent !important;
+  padding: 4px !important;
+  color: #f9e2af !important;
+  font-family: 'Fira Code', 'Cascadia Code', monospace !important;
+  flex: 1;
+  min-width: 0;
+  pointer-events: auto;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.fn-input:focus {
+  border: none !important;
+}
+
+.fn-parens {
+  color: #6c7086;
+}
+
+.fn-hint {
+  margin-top: 6px;
+  font-size: 11px;
+  color: #585b70;
+  line-height: 1.4;
+}
+
+.fn-hint code {
+  background: #313244;
+  padding: 1px 4px;
+  border-radius: 3px;
+  color: #a6e3a1;
+  font-size: 11px;
+}

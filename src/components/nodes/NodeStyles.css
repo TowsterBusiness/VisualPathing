@@ -1,0 +1,160 @@
+/* ===== Shared Logic Node Styles ===== */
+
+.logic-node {
+  min-width: 180px;
+  border-radius: 10px;
+  background: #1e1e2e;
+  border: 2px solid #313244;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-size: 12px;
+  color: #cdd6f4;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  position: relative;
+}
+
+.logic-node.selected {
+  border-color: #89b4fa;
+  box-shadow: 0 0 0 3px rgba(137, 180, 250, 0.25), 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.logic-node:hover {
+  border-color: #585b70;
+}
+
+/* ===== Node Header ===== */
+
+.node-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 8px 8px 0 0;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.start-header   { background: linear-gradient(135deg, #a6e3a1 0%, #94e2d5 100%); color: #1e1e2e; }
+.move-header    { background: linear-gradient(135deg, #89b4fa 0%, #74c7ec 100%); color: #1e1e2e; }
+.parallel-header { background: linear-gradient(135deg, #f9e2af 0%, #fab387 100%); color: #1e1e2e; }
+.while-header   { background: linear-gradient(135deg, #cba6f7 0%, #f5c2e7 100%); color: #1e1e2e; }
+.wait-header    { background: linear-gradient(135deg, #fab387 0%, #eba0ac 100%); color: #1e1e2e; }
+.action-header  { background: linear-gradient(135deg, #74c7ec 0%, #89dceb 100%); color: #1e1e2e; }
+.split-header   { background: linear-gradient(135deg, #f38ba8 0%, #eba0ac 100%); color: #1e1e2e; }
+.merge-header   { background: linear-gradient(135deg, #94e2d5 0%, #a6e3a1 100%); color: #1e1e2e; }
+
+.node-icon {
+  font-size: 16px;
+}
+
+.node-title {
+  flex: 1;
+}
+
+.node-badge {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+/* ===== Node Body ===== */
+
+.node-body {
+  padding: 8px 12px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.node-field {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.field-label {
+  color: #a6adc8;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.field-value {
+  color: #cdd6f4;
+  font-weight: 500;
+  font-size: 12px;
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.field-value.fn-name {
+  color: #f9e2af;
+  font-family: 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 11px;
+}
+
+/* ===== Heading Viewer ===== */
+
+.heading-viewer {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.heading-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #313244;
+  font-size: 10px;
+  line-height: 1;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.heading-deg {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ===== Handles ===== */
+
+.handle-source,
+.handle-target {
+  width: 10px !important;
+  height: 10px !important;
+  border: 2px solid #585b70 !important;
+  background: #313244 !important;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.handle-source:hover,
+.handle-target:hover {
+  background: #89b4fa !important;
+  border-color: #89b4fa !important;
+}
+
+.handle-right {
+  top: 50% !important;
+}
+
+/* ===== Split node branch labels ===== */
+
+.split-labels {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 20px 6px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.split-true { color: #a6e3a1; }
+.split-false { color: #f38ba8; }
