@@ -23,6 +23,8 @@ import type {
   ActionNodeData,
   ExportedTree,
   LogicNodeType,
+  FieldPosition,
+  Heading,
 } from '../types/nodes';
 
 export type AppNode = Node<LogicNodeData & Record<string, unknown>>;
@@ -77,8 +79,7 @@ function defaultDataForType(type: LogicNodeType): LogicNodeData {
         label: 'Move To',
         targetPosition: { x: 72, y: 72 },
         targetHeading: 0,
-        controlPoint1: { x: 10, y: 0 },
-        controlPoint2: { x: -10, y: 0 },
+        controlPoints: [],
         ambiguousStart: false,
       } satisfies MoveNodeData;
     case 'parallel':
@@ -162,23 +163,45 @@ export const useStore = create<AppState>((set, get) => ({
   onConnect: (connection: Connection) => {
     const edges = get().edges;
 
-    // Enforce 1-to-1: reject if target handle already has an incoming edge
-    const targetOccupied = edges.some(
-      (e) =>
-        e.target === connection.target &&
-        (e.targetHandle ?? null) === (connection.targetHandle ?? null),
-    );
-    if (targetOccupied) return;
+    // Prevent cycles: check if target can already reach source through existing edges
+    // If target can reach source, then adding source->target would create a cycle
+    const wouldCreateCycle = (source: string, target: string, edges: AppEdge[]): boolean => {
+      const visited = new Set<string>();
+      const queue: string[] = [target];
+      
+      while (queue.length > 0) {
+        const current = queue.shift()!;
+        if (current === source) return true; // Found a path from target to source
+        if (visited.has(current)) continue;
+        visited.add(current);
+        
+        // Add all nodes that current points to
+        for (const edge of edges) {
+          if (edge.source === current) {
+            queue.push(edge.target);
+          }
+        }
+      }
+      return false;
+    };
 
-    // Reject if source handle already has an outgoing edge
-    const sourceOccupied = edges.some(
-      (e) =>
-        e.source === connection.source &&
-        (e.sourceHandle ?? null) === (connection.sourceHandle ?? null),
-    );
-    if (sourceOccupied) return;
+    if (wouldCreateCycle(connection.source, connection.target, edges)) {
+      console.warn('Cannot create connection: would create a cycle');
+      return; // Reject connection that would create a cycle
+    }
 
-    set({ edges: addEdge(connection, get().edges) });
+    // Remove any existing edges that conflict with this connection (enforce 1-to-1 handles)
+    const filteredEdges = edges.filter(
+      (e) =>
+        // Keep edge if it's not on the same target handle
+        !(e.target === connection.target &&
+          (e.targetHandle ?? null) === (connection.targetHandle ?? null)) &&
+        // Keep edge if it's not on the same source handle
+        !(e.source === connection.source &&
+          (e.sourceHandle ?? null) === (connection.sourceHandle ?? null))
+    );
+
+    set({ edges: addEdge(connection, filteredEdges) });
   },
 
   addNode: (type, editorPosition) => {
@@ -198,15 +221,75 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   updateNodeData: (id, newData) => {
-    set({
-      nodes: get().nodes.map((node) => {
-        if (node.id !== id) return node;
-        return {
-          ...node,
-          data: { ...node.data, ...newData } as LogicNodeData & Record<string, unknown>,
-        };
-      }),
+    const updatedNodes = get().nodes.map((node) => {
+      if (node.id !== id) return node;
+      return {
+        ...node,
+        data: { ...node.data, ...newData } as LogicNodeData & Record<string, unknown>,
+      };
     });
+
+    // Check if this update affects the node's end position
+    const updatedNode = updatedNodes.find((n) => n.id === id);
+    if (!updatedNode) {
+      set({ nodes: updatedNodes });
+      return;
+    }
+
+    const updatedData = updatedNode.data as LogicNodeData;
+    let endPositionChanged = false;
+    let newEndPosition: FieldPosition | null = null;
+    let newEndHeading: Heading | null = null;
+
+    // Determine if end position changed
+    if (updatedData.type === 'start' && 'position' in newData) {
+      endPositionChanged = true;
+      newEndPosition = (updatedData as StartNodeData).position;
+      if ('heading' in newData) {
+        newEndHeading = (updatedData as StartNodeData).heading;
+      }
+    } else if (updatedData.type === 'move' && 'targetPosition' in newData) {
+      endPositionChanged = true;
+      newEndPosition = (updatedData as MoveNodeData).targetPosition;
+      if ('targetHeading' in newData) {
+        newEndHeading = (updatedData as MoveNodeData).targetHeading;
+      }
+    }
+
+    // If end position changed, update downstream nodes with ambiguousStart
+    if (endPositionChanged && newEndPosition) {
+      const edges = get().edges;
+      const childNodes = edges
+        .filter((e) => e.source === id)
+        .map((e) => e.target);
+
+      const finalNodes = updatedNodes.map((node) => {
+        if (!childNodes.includes(node.id)) return node;
+
+        const nodeData = node.data as LogicNodeData;
+        if (nodeData.type === 'move') {
+          const moveData = nodeData as MoveNodeData;
+          // Update override position if ambiguousStart is true
+          if (moveData.ambiguousStart) {
+            const updatedMoveData: Partial<MoveNodeData> = {
+              overrideStartPosition: newEndPosition,
+            };
+            if (newEndHeading !== null) {
+              updatedMoveData.overrideStartHeading = newEndHeading;
+            }
+            return {
+              ...node,
+              data: { ...node.data, ...updatedMoveData } as LogicNodeData & Record<string, unknown>,
+            };
+          }
+        }
+        return node;
+      });
+
+      set({ nodes: finalNodes });
+    } else {
+      set({ nodes: updatedNodes });
+    }
   },
 
   deleteNode: (id) => {

@@ -14,7 +14,7 @@ export function WhileNode({ id, data, selected }: NodeProps) {
     >
       <Handle type="target" position={Position.Top} className="handle-target" />
       <div className="node-header while-header">
-        <span className="node-icon">🔄</span>
+        <span className="material-icons node-icon">loop</span>
         <span className="node-title">{nodeData.label}</span>
       </div>
       <div className="node-body">

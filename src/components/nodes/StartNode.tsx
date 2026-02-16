@@ -13,7 +13,7 @@ export function StartNode({ id, data, selected }: NodeProps) {
       onClick={() => setSelectedNodeId(id)}
     >
       <div className="node-header start-header">
-        <span className="node-icon">🏁</span>
+        <span className="material-icons node-icon">flag</span>
         <span className="node-title">{nodeData.label}</span>
       </div>
       <div className="node-body">

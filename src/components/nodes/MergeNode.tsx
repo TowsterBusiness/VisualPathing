@@ -27,7 +27,7 @@ export function MergeNode({ id, data, selected }: NodeProps) {
         style={{ left: '70%' }}
       />
       <div className="node-header merge-header">
-        <span className="node-icon">🔗</span>
+        <span className="material-icons node-icon">call_merge</span>
         <span className="node-title">{nodeData.label}</span>
       </div>
       <div className="node-body">

@@ -28,6 +28,18 @@
   font-size: 20px;
 }
 
+/* Material Icons alignment */
+.material-icons {
+  font-size: 18px;
+  vertical-align: middle;
+  user-select: none;
+}
+
+.toolbar-action-btn .material-icons {
+  font-size: 18px;
+  margin-right: 4px;
+}
+
 .project-name-input {
   background: transparent;
   border: 1px solid transparent;
@@ -99,7 +111,12 @@
 }
 
 .btn-icon {
-  font-size: 14px;
+  font-size: 16px;
+}
+
+.btn-icon.material-icons {
+  font-size: 16px;
+  line-height: 1;
 }
 
 .btn-label {
@@ -156,6 +173,17 @@
   background: #313244;
   border-color: #a6e3a1;
   color: #a6e3a1;
+}
+
+.code-btn {
+  background: #1e1e2e;
+  color: #cdd6f4;
+}
+
+.code-btn:hover {
+  background: #313244;
+  border-color: #cba6f7;
+  color: #cba6f7;
 }
 
 /* ===== Responsive Toolbar ===== */

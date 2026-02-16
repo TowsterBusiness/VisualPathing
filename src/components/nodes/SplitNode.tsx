@@ -14,7 +14,7 @@ export function SplitNode({ id, data, selected }: NodeProps) {
     >
       <Handle type="target" position={Position.Top} className="handle-target" />
       <div className="node-header split-header">
-        <span className="node-icon">🔀</span>
+        <span className="material-icons node-icon">alt_route</span>
         <span className="node-title">{nodeData.label}</span>
       </div>
       <div className="node-body">

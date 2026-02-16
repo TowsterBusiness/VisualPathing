@@ -2,6 +2,7 @@ import { useRef, useEffect, useCallback, useState } from 'react';
 import { useStore } from '../../store/useStore';
 import { useSimulationStore } from '../../store/useSimulationStore';
 import type { FieldPosition, MoveNodeData, StartNodeData, LogicNodeData } from '../../types/nodes';
+import { sampleBezierPath } from '../../utils/bezier';
 import './FieldCanvas.css';
 
 /** FTC field is 144 x 144 inches */
@@ -60,8 +61,9 @@ function getNodeEndPosition(
 /** Info about a draggable handle on the field */
 interface DragHandle {
   nodeId: string;
-  kind: 'start-pos' | 'move-target' | 'cp1' | 'cp2';
+  kind: 'start-pos' | 'move-target' | 'control-point';
   fieldPos: FieldPosition;
+  controlPointIndex?: number; // for kind === 'control-point'
 }
 
 export function FieldCanvas() {
@@ -124,7 +126,7 @@ export function FieldCanvas() {
           });
 
           // If selected, also add control point handles
-          if (node.id === selectedNodeId) {
+          if (node.id === selectedNodeId && moveData.controlPoints.length > 0) {
             let startPos: FieldPosition | null = null;
             if (moveData.ambiguousStart && moveData.overrideStartPosition) {
               startPos = moveData.overrideStartPosition;
@@ -132,24 +134,31 @@ export function FieldCanvas() {
               const parentId = childToParent.get(node.id);
               if (parentId) startPos = resolvedPositions.get(parentId) ?? null;
             }
+            
+            // Add handles for each control point
+            // Control points are distributed between start and end
             if (startPos) {
-              handles.push({
-                nodeId: node.id,
-                kind: 'cp1',
-                fieldPos: {
-                  x: startPos.x + moveData.controlPoint1.x,
-                  y: startPos.y + moveData.controlPoint1.y,
-                },
-              });
+              const endPos = moveData.targetPosition;
+              const numCP = moveData.controlPoints.length;
+              
+              for (let i = 0; i < numCP; i++) {
+                const cp = moveData.controlPoints[i];
+                // Interpolate anchor position for this control point
+                const t = (i + 1) / (numCP + 1);
+                const anchorX = startPos.x * (1 - t) + endPos.x * t;
+                const anchorY = startPos.y * (1 - t) + endPos.y * t;
+                
+                handles.push({
+                  nodeId: node.id,
+                  kind: 'control-point',
+                  controlPointIndex: i,
+                  fieldPos: {
+                    x: anchorX + cp.x,
+                    y: anchorY + cp.y,
+                  },
+                });
+              }
             }
-            handles.push({
-              nodeId: node.id,
-              kind: 'cp2',
-              fieldPos: {
-                x: moveData.targetPosition.x + moveData.controlPoint2.x,
-                y: moveData.targetPosition.y + moveData.controlPoint2.y,
-              },
-            });
           }
         }
       }
@@ -252,21 +261,28 @@ export function FieldCanvas() {
       if (!startPos) continue;
 
       const endPos = moveData.targetPosition;
-      const cp1: FieldPosition = {
-        x: startPos.x + moveData.controlPoint1.x,
-        y: startPos.y + moveData.controlPoint1.y,
-      };
-      const cp2: FieldPosition = {
-        x: endPos.x + moveData.controlPoint2.x,
-        y: endPos.y + moveData.controlPoint2.y,
-      };
+      
+      // Build all bezier points: start, control points (absolute), end
+      const allPoints: FieldPosition[] = [startPos];
+      const numCP = moveData.controlPoints.length;
+      
+      for (let i = 0; i < numCP; i++) {
+        const cp = moveData.controlPoints[i];
+        // Control point is relative to interpolated anchor
+        const t = (i + 1) / (numCP + 1);
+        const anchorX = startPos.x * (1 - t) + endPos.x * t;
+        const anchorY = startPos.y * (1 - t) + endPos.y * t;
+        allPoints.push({ x: anchorX + cp.x, y: anchorY + cp.y });
+      }
+      
+      allPoints.push(endPos);
 
       const isSelected = node.id === selectedNodeId;
-      drawBezierPath(ctx, startPos, cp1, cp2, endPos, canvasSize, isSelected);
+      drawBezierPath(ctx, allPoints, canvasSize, isSelected);
 
       // Draw control point guides for selected node
       if (isSelected) {
-        drawControlPoints(ctx, startPos, cp1, cp2, endPos, canvasSize);
+        drawControlPoints(ctx, startPos, endPos, allPoints, canvasSize);
       }
     }
 
@@ -402,9 +418,11 @@ export function FieldCanvas() {
       updateNodeData(handle.nodeId, {
         targetPosition: fieldPos,
       } as Partial<MoveNodeData>);
-    } else if (handle.kind === 'cp1' && data.type === 'move') {
-      // cp1 is relative to start position — find start
+    } else if (handle.kind === 'control-point' && data.type === 'move' && handle.controlPointIndex !== undefined) {
       const moveData = data as MoveNodeData;
+      const cpIndex = handle.controlPointIndex;
+      
+      // Find start position
       const childToParent = new Map<string, string>();
       for (const edge of edges) {
         childToParent.set(edge.target, edge.source);
@@ -413,7 +431,6 @@ export function FieldCanvas() {
       if (moveData.ambiguousStart && moveData.overrideStartPosition) {
         startPos = moveData.overrideStartPosition;
       } else {
-        // Walk up the tree to find resolved position
         const parentId = childToParent.get(handle.nodeId);
         if (parentId) {
           const parentNode = nodes.find((n) => n.id === parentId);
@@ -424,19 +441,21 @@ export function FieldCanvas() {
           }
         }
       }
+      
+      const endPos = moveData.targetPosition;
+      const numCP = moveData.controlPoints.length;
+      const t = (cpIndex + 1) / (numCP + 1);
+      const anchorX = startPos.x * (1 - t) + endPos.x * t;
+      const anchorY = startPos.y * (1 - t) + endPos.y * t;
+      
+      const newControlPoints = [...moveData.controlPoints];
+      newControlPoints[cpIndex] = {
+        x: Math.round((fieldPos.x - anchorX) * 10) / 10,
+        y: Math.round((fieldPos.y - anchorY) * 10) / 10,
+      };
+      
       updateNodeData(handle.nodeId, {
-        controlPoint1: {
-          x: Math.round((fieldPos.x - startPos.x) * 10) / 10,
-          y: Math.round((fieldPos.y - startPos.y) * 10) / 10,
-        },
-      } as Partial<MoveNodeData>);
-    } else if (handle.kind === 'cp2' && data.type === 'move') {
-      const moveData = data as MoveNodeData;
-      updateNodeData(handle.nodeId, {
-        controlPoint2: {
-          x: Math.round((fieldPos.x - moveData.targetPosition.x) * 10) / 10,
-          y: Math.round((fieldPos.y - moveData.targetPosition.y) * 10) / 10,
-        },
+        controlPoints: newControlPoints,
       } as Partial<MoveNodeData>);
     }
   };
@@ -498,17 +517,14 @@ function drawGrid(ctx: CanvasRenderingContext2D, canvasSize: number, scale: numb
 
 function drawBezierPath(
   ctx: CanvasRenderingContext2D,
-  start: FieldPosition,
-  cp1: FieldPosition,
-  cp2: FieldPosition,
-  end: FieldPosition,
+  points: FieldPosition[],
   canvasSize: number,
   isSelected: boolean,
 ) {
-  const s = fieldToCanvas(start, canvasSize);
-  const c1 = fieldToCanvas(cp1, canvasSize);
-  const c2 = fieldToCanvas(cp2, canvasSize);
-  const e = fieldToCanvas(end, canvasSize);
+  if (points.length < 2) return;
+  
+  const sampledPoints = sampleBezierPath(points, 50);
+  const canvasPoints = sampledPoints.map(p => fieldToCanvas(p, canvasSize));
 
   // Glow effect for selected
   if (isSelected) {
@@ -518,8 +534,10 @@ function drawBezierPath(
     ctx.strokeStyle = '#89b4fa';
     ctx.lineWidth = 4;
     ctx.beginPath();
-    ctx.moveTo(s.x, s.y);
-    ctx.bezierCurveTo(c1.x, c1.y, c2.x, c2.y, e.x, e.y);
+    ctx.moveTo(canvasPoints[0].x, canvasPoints[0].y);
+    for (let i = 1; i < canvasPoints.length; i++) {
+      ctx.lineTo(canvasPoints[i].x, canvasPoints[i].y);
+    }
     ctx.stroke();
     ctx.restore();
   }
@@ -529,12 +547,16 @@ function drawBezierPath(
   ctx.lineWidth = isSelected ? 3 : 2;
   ctx.setLineDash([]);
   ctx.beginPath();
-  ctx.moveTo(s.x, s.y);
-  ctx.bezierCurveTo(c1.x, c1.y, c2.x, c2.y, e.x, e.y);
+  ctx.moveTo(canvasPoints[0].x, canvasPoints[0].y);
+  for (let i = 1; i < canvasPoints.length; i++) {
+    ctx.lineTo(canvasPoints[i].x, canvasPoints[i].y);
+  }
   ctx.stroke();
 
   // Arrow at end
-  drawArrow(ctx, cp2, end, canvasSize, isSelected ? '#89b4fa' : '#74c7ec');
+  if (points.length >= 2) {
+    drawArrow(ctx, points[points.length - 2], points[points.length - 1], canvasSize, isSelected ? '#89b4fa' : '#74c7ec');
+  }
 }
 
 function drawArrow(
@@ -566,40 +588,23 @@ function drawArrow(
 
 function drawControlPoints(
   ctx: CanvasRenderingContext2D,
-  start: FieldPosition,
-  cp1: FieldPosition,
-  cp2: FieldPosition,
-  end: FieldPosition,
+  _start: FieldPosition,
+  _end: FieldPosition,
+  allPoints: FieldPosition[],
   canvasSize: number,
 ) {
-  const s = fieldToCanvas(start, canvasSize);
-  const c1 = fieldToCanvas(cp1, canvasSize);
-  const c2 = fieldToCanvas(cp2, canvasSize);
-  const e = fieldToCanvas(end, canvasSize);
-
-  ctx.setLineDash([4, 4]);
-  ctx.strokeStyle = '#585b70';
-  ctx.lineWidth = 1;
-
-  // Line from start to cp1
-  ctx.beginPath();
-  ctx.moveTo(s.x, s.y);
-  ctx.lineTo(c1.x, c1.y);
-  ctx.stroke();
-
-  // Line from end to cp2
-  ctx.beginPath();
-  ctx.moveTo(e.x, e.y);
-  ctx.lineTo(c2.x, c2.y);
-  ctx.stroke();
+  if (allPoints.length <= 2) return; // No control points
+  
+  const controlPoints = allPoints.slice(1, -1); // Exclude start and end
 
   ctx.setLineDash([]);
 
   // Control point dots
-  for (const pt of [c1, c2]) {
+  for (const pt of controlPoints) {
+    const cp = fieldToCanvas(pt, canvasSize);
     ctx.fillStyle = '#f9e2af';
     ctx.beginPath();
-    ctx.arc(pt.x, pt.y, 5, 0, Math.PI * 2);
+    ctx.arc(cp.x, cp.y, 5, 0, Math.PI * 2);
     ctx.fill();
     ctx.strokeStyle = '#1e1e2e';
     ctx.lineWidth = 1.5;

@@ -50,46 +50,49 @@ export function NodeEditor() {
     // Group edges that share the same source or target node
     const sourceCount = new Map<string, number>();
     const sourceIdx = new Map<string, number>();
+    const targetCount = new Map<string, number>();
+    const targetIdx = new Map<string, number>();
 
     for (const edge of edges) {
-      const key = edge.source;
-      sourceCount.set(key, (sourceCount.get(key) ?? 0) + 1);
+      sourceCount.set(edge.source, (sourceCount.get(edge.source) ?? 0) + 1);
+      // For targets, use a key that includes the handle ID so we don't offset different handles
+      const targetKey = `${edge.target}-${edge.targetHandle ?? 'default'}`;
+      targetCount.set(targetKey, (targetCount.get(targetKey) ?? 0) + 1);
     }
 
     return edges.map((edge) => {
-      const key = edge.source;
-      const total = sourceCount.get(key) ?? 1;
-      if (total <= 1) return edge;
+      const sourceKey = edge.source;
+      const sourceTotal = sourceCount.get(sourceKey) ?? 1;
+      let sourceOffset = 0;
+      
+      if (sourceTotal > 1) {
+        const idx = sourceIdx.get(sourceKey) ?? 0;
+        sourceIdx.set(sourceKey, idx + 1);
+        sourceOffset = (idx - (sourceTotal - 1) / 2) * 20;
+      }
 
-      const idx = sourceIdx.get(key) ?? 0;
-      sourceIdx.set(key, idx + 1);
-      const offset = (idx - (total - 1) / 2) * 20;
+      const targetKey = `${edge.target}-${edge.targetHandle ?? 'default'}`;
+      const targetTotal = targetCount.get(targetKey) ?? 1;
+      let targetOffset = 0;
+      
+      if (targetTotal > 1) {
+        const idx = targetIdx.get(targetKey) ?? 0;
+        targetIdx.set(targetKey, idx + 1);
+        targetOffset = (idx - (targetTotal - 1) / 2) * 20;
+      }
+
+      const totalOffset = sourceOffset + targetOffset;
+      if (totalOffset === 0) return edge;
 
       return {
         ...edge,
-        data: { ...edge.data, pathOptions: { offset } },
+        data: { ...edge.data, pathOptions: { offset: totalOffset } },
       };
     });
   }, [edges]);
 
-  /* Prevent connecting to an already-occupied handle (visual feedback) */
-  const isValidConnection: IsValidConnection = (connection) => {
-    const targetOccupied = edges.some(
-      (e) =>
-        e.target === connection.target &&
-        (e.targetHandle ?? null) === (connection.targetHandle ?? null),
-    );
-    if (targetOccupied) return false;
-
-    const sourceOccupied = edges.some(
-      (e) =>
-        e.source === connection.source &&
-        (e.sourceHandle ?? null) === (connection.sourceHandle ?? null),
-    );
-    if (sourceOccupied) return false;
-
-    return true;
-  };
+  /* Allow all connections - conflicting edges will be auto-removed */
+  const isValidConnection: IsValidConnection = () => true;
 
   return (
     <div className="node-editor-container">

@@ -45,6 +45,12 @@
 
 .node-icon {
   font-size: 16px;
+  line-height: 1;
+  user-select: none;
+}
+
+.node-icon.material-icons {
+  font-size: 18px;
 }
 
 .node-title {

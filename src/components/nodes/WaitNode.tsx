@@ -14,7 +14,7 @@ export function WaitNode({ id, data, selected }: NodeProps) {
     >
       <Handle type="target" position={Position.Top} className="handle-target" />
       <div className="node-header wait-header">
-        <span className="node-icon">⏳</span>
+        <span className="material-icons node-icon">schedule</span>
         <span className="node-title">{nodeData.label}</span>
       </div>
       <div className="node-body">

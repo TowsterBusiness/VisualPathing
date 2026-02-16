@@ -52,10 +52,8 @@ export interface MoveNodeData extends BaseNodeData {
   type: 'move';
   targetPosition: FieldPosition;
   targetHeading: Heading;
-  /** Control point 1 (relative to start) */
-  controlPoint1: BezierPoint;
-  /** Control point 2 (relative to end) */
-  controlPoint2: BezierPoint;
+  /** Control points for the path (can be 0 to many). Each point is relative to its nearest anchor (start or end). */
+  controlPoints: BezierPoint[];
   /** Whether the starting position is ambiguous (user-set, not derived) */
   ambiguousStart: boolean;
   /** If ambiguousStart, user provides explicit start */

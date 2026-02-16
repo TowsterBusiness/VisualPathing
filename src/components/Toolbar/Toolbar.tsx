@@ -1,16 +1,17 @@
 import { useStore } from '../../store/useStore';
 import type { LogicNodeType } from '../../types/nodes';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
+import { CodeViewModal } from '../CodeViewModal/CodeViewModal';
 import './Toolbar.css';
 
 const NODE_BUTTONS: { type: LogicNodeType; label: string; icon: string; color: string }[] = [
-  { type: 'move', label: 'Move', icon: '📍', color: '#89b4fa' },
-  { type: 'parallel', label: 'Parallel', icon: '⚡', color: '#f9e2af' },
-  { type: 'split', label: 'Split', icon: '🔀', color: '#f38ba8' },
-  { type: 'merge', label: 'Merge', icon: '🔗', color: '#94e2d5' },
-  { type: 'while', label: 'While', icon: '🔄', color: '#cba6f7' },
-  { type: 'wait', label: 'Wait', icon: '⏳', color: '#fab387' },
-  { type: 'action', label: 'Action', icon: '▶️', color: '#74c7ec' },
+  { type: 'move', label: 'Move', icon: 'near_me', color: '#89b4fa' },
+  { type: 'parallel', label: 'Parallel', icon: 'call_split', color: '#f9e2af' },
+  { type: 'split', label: 'Split', icon: 'alt_route', color: '#f38ba8' },
+  { type: 'merge', label: 'Merge', icon: 'call_merge', color: '#94e2d5' },
+  { type: 'while', label: 'While', icon: 'loop', color: '#cba6f7' },
+  { type: 'wait', label: 'Wait', icon: 'schedule', color: '#fab387' },
+  { type: 'action', label: 'Action', icon: 'play_arrow', color: '#74c7ec' },
 ];
 
 export function Toolbar() {
@@ -20,6 +21,8 @@ export function Toolbar() {
   const projectName = useStore((s) => s.projectName);
   const setProjectName = useStore((s) => s.setProjectName);
   const setFieldImageUrl = useStore((s) => s.setFieldImageUrl);
+
+  const [isCodeModalOpen, setIsCodeModalOpen] = useState(false);
 
   const handleExport = useCallback(() => {
     const data = exportToJson();
@@ -70,7 +73,7 @@ export function Toolbar() {
     <div className="toolbar">
       <div className="toolbar-left">
         <div className="toolbar-brand">
-          <span className="brand-icon">🤖</span>
+          <span className="material-icons brand-icon">smart_toy</span>
           <input
             className="project-name-input"
             value={projectName}
@@ -92,7 +95,7 @@ export function Toolbar() {
                 title={`Add ${btn.label} node`}
                 style={{ '--btn-color': btn.color } as React.CSSProperties}
               >
-                <span className="btn-icon">{btn.icon}</span>
+                <span className="material-icons btn-icon">{btn.icon}</span>
                 <span className="btn-label">{btn.label}</span>
               </button>
             ))}
@@ -104,13 +107,18 @@ export function Toolbar() {
         <button className="toolbar-action-btn field-btn" onClick={handleLoadFieldImage} title="Load field image">
           🗺️ Field
         </button>
+        <button className="toolbar-action-btn code-btn" onClick={() => setIsCodeModalOpen(true)} title="Show generated code">
+          <span className="material-icons">code</span> Show Code
+        </button>
         <button className="toolbar-action-btn import-btn" onClick={handleImport} title="Import JSON">
-          📂 Import
+          <span className="material-icons">upload_file</span> Import
         </button>
         <button className="toolbar-action-btn export-btn" onClick={handleExport} title="Export to JSON">
-          💾 Export
+          <span className="material-icons">download</span> Export
         </button>
       </div>
+
+      <CodeViewModal isOpen={isCodeModalOpen} onClose={() => setIsCodeModalOpen(false)} />
     </div>
   );
 }

@@ -13,11 +13,13 @@ import './PropertiesPanel.css';
 
 export function PropertiesPanel() {
   const selectedNodeId = useStore((s) => s.selectedNodeId);
-  const getNode = useStore((s) => s.getNode);
+  const node = useStore((s) =>
+    s.selectedNodeId ? s.nodes.find((n) => n.id === s.selectedNodeId) : undefined
+  );
   const updateNodeData = useStore((s) => s.updateNodeData);
   const deleteNode = useStore((s) => s.deleteNode);
 
-  if (!selectedNodeId) {
+  if (!selectedNodeId || !node) {
     return (
       <div className="properties-panel">
         <div className="panel-header">Properties</div>
@@ -25,9 +27,6 @@ export function PropertiesPanel() {
       </div>
     );
   }
-
-  const node = getNode(selectedNodeId);
-  if (!node) return null;
 
   const data = node.data as LogicNodeData;
 
@@ -141,6 +140,22 @@ function MoveProperties({
   data: MoveNodeData;
   update: (p: Partial<LogicNodeData>) => void;
 }) {
+  const addControlPoint = () => {
+    const newControlPoints = [...data.controlPoints, { x: 10, y: 0 }];
+    update({ controlPoints: newControlPoints } as Partial<MoveNodeData>);
+  };
+
+  const removeControlPoint = (index: number) => {
+    const newControlPoints = data.controlPoints.filter((_, i) => i !== index);
+    update({ controlPoints: newControlPoints } as Partial<MoveNodeData>);
+  };
+
+  const updateControlPoint = (index: number, axis: 'x' | 'y', value: number) => {
+    const newControlPoints = [...data.controlPoints];
+    newControlPoints[index] = { ...newControlPoints[index], [axis]: value };
+    update({ controlPoints: newControlPoints } as Partial<MoveNodeData>);
+  };
+
   return (
     <>
       <div className="panel-section">
@@ -196,79 +211,74 @@ function MoveProperties({
       </div>
 
       <div className="panel-section">
-        <label className="prop-label">Control Point 1 (relative to start)</label>
-        <div className="prop-row">
-          <div className="prop-field">
-            <span className="prop-prefix">X</span>
-            <input
-              type="number"
-              className="prop-input prop-number"
-              value={data.controlPoint1.x}
-              onChange={(e) =>
-                update({
-                  controlPoint1: {
-                    ...data.controlPoint1,
-                    x: parseFloat(e.target.value) || 0,
-                  },
-                } as Partial<MoveNodeData>)
-              }
-            />
-          </div>
-          <div className="prop-field">
-            <span className="prop-prefix">Y</span>
-            <input
-              type="number"
-              className="prop-input prop-number"
-              value={data.controlPoint1.y}
-              onChange={(e) =>
-                update({
-                  controlPoint1: {
-                    ...data.controlPoint1,
-                    y: parseFloat(e.target.value) || 0,
-                  },
-                } as Partial<MoveNodeData>)
-              }
-            />
-          </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <label className="prop-label" style={{ margin: 0 }}>Control Points ({data.controlPoints.length})</label>
+          <button
+            className="btn-add-cp"
+            onClick={addControlPoint}
+            style={{
+              background: '#89b4fa',
+              border: 'none',
+              borderRadius: 4,
+              padding: '4px 8px',
+              color: '#1e1e2e',
+              cursor: 'pointer',
+              fontSize: '12px',
+              fontWeight: 600,
+            }}
+          >
+            + Add
+          </button>
         </div>
-      </div>
+        
+        {data.controlPoints.length === 0 && (
+          <div className="fn-hint" style={{ marginTop: 8 }}>
+            No control points — path will be a straight line
+          </div>
+        )}
 
-      <div className="panel-section">
-        <label className="prop-label">Control Point 2 (relative to end)</label>
-        <div className="prop-row">
-          <div className="prop-field">
-            <span className="prop-prefix">X</span>
-            <input
-              type="number"
-              className="prop-input prop-number"
-              value={data.controlPoint2.x}
-              onChange={(e) =>
-                update({
-                  controlPoint2: {
-                    ...data.controlPoint2,
-                    x: parseFloat(e.target.value) || 0,
-                  },
-                } as Partial<MoveNodeData>)
-              }
-            />
+        {data.controlPoints.map((cp, index) => (
+          <div key={index} style={{ marginTop: 8, padding: 8, background: '#1e1e2e', borderRadius: 4 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+              <span style={{ fontSize: '11px', color: '#bac2de', fontWeight: 600 }}>CP {index + 1}</span>
+              <button
+                onClick={() => removeControlPoint(index)}
+                style={{
+                  background: '#f38ba8',
+                  border: 'none',
+                  borderRadius: 3,
+                  padding: '2px 6px',
+                  color: '#1e1e2e',
+                  cursor: 'pointer',
+                  fontSize: '10px',
+                  fontWeight: 600,
+                }}
+              >
+                Remove
+              </button>
+            </div>
+            <div className="prop-row">
+              <div className="prop-field">
+                <span className="prop-prefix">X</span>
+                <input
+                  type="number"
+                  className="prop-input prop-number"
+                  value={cp.x}
+                  onChange={(e) => updateControlPoint(index, 'x', parseFloat(e.target.value) || 0)}
+                />
+              </div>
+              <div className="prop-field">
+                <span className="prop-prefix">Y</span>
+                <input
+                  type="number"
+                  className="prop-input prop-number"
+                  value={cp.y}
+                  onChange={(e) => updateControlPoint(index, 'y', parseFloat(e.target.value) || 0)}
+                />
+              </div>
+            </div>
           </div>
-          <div className="prop-field">
-            <span className="prop-prefix">Y</span>
-            <input
-              type="number"
-              className="prop-input prop-number"
-              value={data.controlPoint2.y}
-              onChange={(e) =>
-                update({
-                  controlPoint2: {
-                    ...data.controlPoint2,
-                    y: parseFloat(e.target.value) || 0,
-                  },
-                } as Partial<MoveNodeData>)
-              }
-            />
-          </div>
-        </div>
+        ))}
       </div>
 
       <div className="panel-section">

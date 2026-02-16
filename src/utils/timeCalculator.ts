@@ -1,26 +1,25 @@
 import type { FieldPosition, Heading, LogicNodeData, MoveNodeData, StartNodeData } from '../types/nodes';
 import type { RobotSettings, TimelineSegment, TimePrediction, RobotState } from '../types/simulation';
-import { cubicBezier } from './bezier';
+import { generalBezier } from './bezier';
 import type { AppNode, AppEdge } from '../store/useStore';
 
 // ─── Curve Utilities ────────────────────────────────────────────
 
 /**
- * Calculate the arc length of a cubic bézier by sampling.
+ * Calculate the arc length of a bezier curve by sampling.
  */
 export function calculateCurveLength(
-  start: FieldPosition,
-  cp1: FieldPosition,
-  cp2: FieldPosition,
-  end: FieldPosition,
+  points: FieldPosition[],
   samples = 100,
 ): number {
+  if (points.length < 2) return 0;
+  
   let length = 0;
-  let prev = start;
+  let prev = points[0];
 
   for (let i = 1; i <= samples; i++) {
     const t = i / samples;
-    const pt = cubicBezier(start, cp1, cp2, end, t);
+    const pt = generalBezier(points, t);
     const dx = pt.x - prev.x;
     const dy = pt.y - prev.y;
     length += Math.sqrt(dx * dx + dy * dy);
@@ -31,20 +30,19 @@ export function calculateCurveLength(
 }
 
 /**
- * Calculate the tangent angle (degrees) at a point on a cubic bézier.
+ * Calculate the tangent angle (degrees) at a point on a bezier curve.
  */
 export function getHeadingAtT(
-  start: FieldPosition,
-  cp1: FieldPosition,
-  cp2: FieldPosition,
-  end: FieldPosition,
+  points: FieldPosition[],
   t: number,
 ): Heading {
+  if (points.length < 2) return 0;
+  
   const dt = 0.001;
   const t0 = Math.max(0, t - dt);
   const t1 = Math.min(1, t + dt);
-  const p0 = cubicBezier(start, cp1, cp2, end, t0);
-  const p1 = cubicBezier(start, cp1, cp2, end, t1);
+  const p0 = generalBezier(points, t0);
+  const p1 = generalBezier(points, t1);
   return Math.atan2(p1.y - p0.y, p1.x - p0.x) * (180 / Math.PI);
 }
 
@@ -218,17 +216,24 @@ export function calculatePathTime(
         }
 
         const endPos = md.targetPosition;
-        const cp1: FieldPosition = {
-          x: startPos.x + md.controlPoint1.x,
-          y: startPos.y + md.controlPoint1.y,
-        };
-        const cp2: FieldPosition = {
-          x: endPos.x + md.controlPoint2.x,
-          y: endPos.y + md.controlPoint2.y,
-        };
+        
+        // Build all bezier points: start, control points (absolute), end
+        const allPoints: FieldPosition[] = [startPos];
+        const numCP = md.controlPoints.length;
+        
+        for (let i = 0; i < numCP; i++) {
+          const cp = md.controlPoints[i];
+          // Control point is relative to interpolated anchor
+          const t = (i + 1) / (numCP + 1);
+          const anchorX = startPos.x * (1 - t) + endPos.x * t;
+          const anchorY = startPos.y * (1 - t) + endPos.y * t;
+          allPoints.push({ x: anchorX + cp.x, y: anchorY + cp.y });
+        }
+        
+        allPoints.push(endPos);
 
         // --- Rotation to face path direction ---
-        const pathStartHeading = getHeadingAtT(startPos, cp1, cp2, endPos, 0);
+        const pathStartHeading = getHeadingAtT(allPoints, 0);
         const rotAngle = absAngularDifference(currentHeading, pathStartHeading);
 
         if (rotAngle > 0.5) {
@@ -249,7 +254,7 @@ export function calculatePathTime(
         }
 
         // --- Travel along the bezier ---
-        const curveLen = calculateCurveLength(startPos, cp1, cp2, endPos);
+        const curveLen = calculateCurveLength(allPoints);
         totalDistance += curveLen;
 
         const travelTime = calculateMotionProfileTime(
@@ -258,9 +263,6 @@ export function calculatePathTime(
           settings.maxAcceleration,
           settings.maxDeceleration,
         );
-
-        const bezierPoints: [FieldPosition, FieldPosition, FieldPosition, FieldPosition] =
-          [startPos, cp1, cp2, endPos];
 
         segments.push({
           kind: 'travel',
@@ -272,7 +274,7 @@ export function calculatePathTime(
           endPosition: { ...endPos },
           startHeading: currentHeading,
           endHeading: md.targetHeading,
-          bezierPoints,
+          bezierPoints: allPoints,
         });
 
         currentTime += travelTime;
@@ -372,10 +374,9 @@ export function getRobotStateAtTime(
       let position: FieldPosition;
       let heading: Heading;
 
-      if (seg.kind === 'travel' && seg.bezierPoints) {
+      if (seg.kind === 'travel' && seg.bezierPoints && seg.bezierPoints.length >= 2) {
         // Interpolate along bézier
-        const [p0, p1, p2, p3] = seg.bezierPoints;
-        position = cubicBezier(p0, p1, p2, p3, segProgress);
+        position = generalBezier(seg.bezierPoints, segProgress);
         heading = lerpHeading(seg.startHeading, seg.endHeading, segProgress);
       } else if (seg.kind === 'rotate') {
         position = { ...seg.startPosition };

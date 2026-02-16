@@ -41,9 +41,9 @@ export interface TimelineSegment {
   endHeading: Heading;
   /**
    * For 'travel' segments: the bezier curve for interpolation.
-   * [start, cp1, cp2, end]
+   * Array of all points: [start, ...controlPoints, end]
    */
-  bezierPoints?: [FieldPosition, FieldPosition, FieldPosition, FieldPosition];
+  bezierPoints?: FieldPosition[];
 }
 
 /** Full time prediction result */

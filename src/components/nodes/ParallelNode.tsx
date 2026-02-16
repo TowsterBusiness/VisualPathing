@@ -28,7 +28,7 @@ export function ParallelNode({ id, data, selected }: NodeProps) {
     >
       <Handle type="target" position={Position.Top} className="handle-target" />
       <div className="node-header parallel-header">
-        <span className="node-icon">⚡</span>
+        <span className="material-icons node-icon">call_split</span>
         <span className="node-title">{nodeData.label}</span>
         <span className="node-badge">{nodeData.branchCount}×</span>
       </div>
